@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.Scanner;
 
 public class App<Randon> {
@@ -8,6 +9,8 @@ public class App<Randon> {
     static String[] naveEspacial = { "Nave espacial 1", "Nave espacial 2" };
     static double[] velocidadNave = { 2, 21.56 }; // km/h
     static double[] combustibleNave = { 0.0003 , 0.0005 }; //toneladas/km.
+    static int seleccion = -1;
+    static int nave = -1;
 
     public static void main(String[] args) throws Exception {
         menuPrincipla();
@@ -21,13 +24,13 @@ public class App<Randon> {
                 case 1:
                     System.out.println("Has seleccionado la Opción 1. Seleccionar un planeta de destino.");
                     mostrarDestinos();
-                    int seleccion = elegirDestino();
+                     seleccion = elegirDestino();
                     mostrarInformacionDestino(seleccion);
                     break;
                 case 2:
                     System.out.println("Has seleccionado la Opción 2. Seleccionar una nave espacial.");
                     naveEspacial();
-                    int nave = seleccionNave();
+                     nave = seleccionNave();
                     informacionNave(nave);
                     int nPersonas = numeroPersonas();
                     int eleccion = 0;
@@ -36,10 +39,44 @@ public class App<Randon> {
                     double cantidad= cantidadCombustible(s, nave);
                     
                     double oxigenoNecesario = cantidadOxigeno(duracion, nPersonas);
+
+                    // Pausa antes de volver al menú principal
+                    System.out.println("Presiona Enter para volver al menú principal...");
+                    scanner.nextLine(); // Consume cualquier entrada pendiente
+                    scanner.nextLine(); // Espera que el usuario presione Enter
+                
+                    // Regresar al menú principal
+                    menuPrincipla();
+                    
                     break;
                 case 3:
-                    System.out.println("Has seleccionado la Opción 3. Iniciar la simulación del viaje.\r");
-                    // Aquí puedes agregar la lógica para la opción 3
+                System.out.println("Has seleccionado la Opción 3. Iniciar la simulación del viaje.");
+
+                if (seleccion == -1 || nave == -1) {
+                    System.out.println("Primero debes seleccionar un destino y una nave en las opciones 1 y 2.");
+                    break;
+                }
+                // Configurar los datos necesarios para la simulación
+                double distanciaTotal = distancias[seleccion] * 1_000_000; // Convertir de millones de km a km
+                double velocidad = velocidadNave[nave]; // Velocidad de la nave seleccionada
+                double consumoCombustible = combustibleNave[nave];
+                double consumoOxigeno = 20.16; // Oxígeno por día por persona
+                int personas = numeroPersonas(); // Obtener el número de personas
+            
+                double[] recursos = new double[] {
+                    consumoCombustible * distanciaTotal, // Total de combustible necesario
+                    consumoOxigeno * (distanciaTotal / velocidad / 24) * personas // Total de oxígeno necesario
+                };
+                // Iniciar la simulación
+                boolean resultado = simularEventosAleatorios(distanciaTotal, velocidad, recursos);
+                if (resultado) {
+                    System.out.println("\n¡Felicidades! El viaje fue exitoso y llegaste a tu destino.");
+                } else {
+                    System.out.println("\nEl viaje ha fallado. Por favor, inténtalo de nuevo.");
+                }
+            
+                // Regresar al menú principal
+                menuPrincipla();                    
                     break;
                 case 0:
                     System.out.println("Ingresas cero para salir del programa...");
@@ -171,5 +208,88 @@ public class App<Randon> {
         return oxigenoNecesario;
     }
    
+    // Simulación de eventos
+    public static boolean simularEventosAleatorios(double distanciaTotal, double velocidad, double[] recursos) {
+        Random random = new Random();
+        double progreso = 0;
+        double tiempoTranscurrido = 0;
+        double consumoCombustible = recursos[0];
+        double consumoOxigeno = recursos[1];
+    
+        while (progreso < 100) {
+            // Simula el avance del viaje
+            double avance = random.nextDouble() * 5; // Avance aleatorio entre 0 y 5%
+            progreso += avance;
+            tiempoTranscurrido += (avance / 100) * (distanciaTotal / velocidad);
+    
+            // Consumo de recursos
+            consumoCombustible -= avance * recursos[0] / 100;
+            consumoOxigeno -= avance * recursos[1] / 100;
+    
+            // Mostrar progreso
+            System.out.printf("\nProgreso del viaje: %.2f%%, Tiempo transcurrido: %.2f horas\n", progreso, tiempoTranscurrido);
+            System.out.printf("Combustible restante: %.2f toneladas, Oxígeno restante: %.2f kg\n", consumoCombustible, consumoOxigeno);
+    
+            // Eventos aleatorios
+            int evento = random.nextInt(10); // Generar eventos aleatorios (5% de probabilidad por tipo)
+            if (evento < 3) { // 30% de probabilidad de que ocurra un evento
+                if (random.nextBoolean()) {
+                    // Evento: Asteroides
+                    System.out.println("\n¡Cuidado! Un cinturón de asteroides está bloqueando el camino.");
+                    System.out.println("1. Cambiar de rumbo (consume combustible).");
+                    System.out.println("2. Pasar en medio de los asteroides (50% de riesgo de estrellarse).");
+                    int decision = scanner.nextInt();
+                    if (decision == 1) {
+                        consumoCombustible -= 20; // Consumir combustible
+                        System.out.println("Rumbo cambiado, combustible consumido.");
+                    } else if (decision == 2) {
+                        if (random.nextBoolean()) { // 50% de probabilidad de colisión
+                            System.out.println("¡La nave se estrelló con el asteroide! El viaje ha fallado.");
+                            return false;
+                        } else {
+                            System.out.println("Lograste pasar entre los asteroides sin problemas.");
+                        }
+                    }
+                } else {
+                    // Evento: Errores del sistema
+                    System.out.println("\n¡Error crítico en el sistema!");
+                    if (random.nextBoolean()) {
+                        // Fallo en el oxígeno
+                        double oxigenoPerdido = random.nextDouble() * 25; // Perdida aleatoria entre 0 y 25 kg
+                        consumoOxigeno -= oxigenoPerdido;
+                        System.out.printf("Fallo en el sistema de oxígeno. Perdidos %.2f kg de oxígeno.\n", oxigenoPerdido);
+                    } else {
+                        // Fallo en el combustible
+                        double combustiblePerdido = random.nextDouble() * 5; // Perdida aleatoria entre 0 y 5 toneladas
+                        consumoCombustible -= combustiblePerdido;
+                        System.out.printf("Fallo en el sistema de combustible. Perdidas %.2f toneladas de combustible.\n", combustiblePerdido);
+                    }
+                    // Reparación obligatoria
+                    System.out.println("La nave necesita reparaciones. Esto atrasará el viaje.");
+                    tiempoTranscurrido += 2; // Atrasar el viaje
+                }
+            }
+    
+            // Verificar si los recursos se agotaron
+            if (consumoCombustible <= 0 || consumoOxigeno <= 0) {
+                System.out.println("La nave se quedó sin recursos. El viaje ha fallado.");
+                return false;
+            }
+        }
+        System.out.println("\n¡Viaje exitoso! Llegaste a tu destino.");
+        return true;
+    }
    
+   // Monitoreo del viaje
+   public static void iniciarVuelo(double distancia, double velocidad, double combustible, double oxigeno, double duracion) {
+        System.out.println("Iniciando vuelo...");
+        double[] recursos = {combustible, oxigeno};
+        boolean resultado = simularEventosAleatorios(distancia, velocidad, recursos);
+        if (resultado) {
+            System.out.println("El viaje ha concluido con éxito.");
+        } else {
+            System.out.println("El viaje ha fallado. Intenta nuevamente ajustando los recursos.");
+        }
+    }
+
 }
