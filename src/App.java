@@ -32,7 +32,7 @@ public class App<Randon> {
                     naveEspacial();
                      nave = seleccionNave();
                     informacionNave(nave);
-                    int nPersonas = numeroPersonas();
+                    /*int nPersonas = numeroPersonas();
                     int eleccion = 0;
                     double duracion= calculoDuracionViaje(eleccion , nave);
                     int s=0;
@@ -43,7 +43,7 @@ public class App<Randon> {
                     // Pausa antes de volver al menú principal
                     System.out.println("Presiona Enter para volver al menú principal...");
                     scanner.nextLine(); // Consume cualquier entrada pendiente
-                    scanner.nextLine(); // Espera que el usuario presione Enter
+                    scanner.nextLine(); // Espera que el usuario presione Enter*/
                 
                     // Regresar al menú principal
                     menuPrincipla();
@@ -218,7 +218,7 @@ public class App<Randon> {
     
         while (progreso < 100) {
             // Simula el avance del viaje
-            double avance = random.nextDouble() * 5; // Avance aleatorio entre 0 y 5%
+            double avance = random.nextDouble() * 10; // Avance aleatorio entre 0 y 10%
             progreso += avance;
             tiempoTranscurrido += (avance / 100) * (distanciaTotal / velocidad);
     
@@ -231,7 +231,7 @@ public class App<Randon> {
             System.out.printf("Combustible restante: %.2f toneladas, Oxígeno restante: %.2f kg\n", consumoCombustible, consumoOxigeno);
     
             // Eventos aleatorios
-            int evento = random.nextInt(10); // Generar eventos aleatorios (5% de probabilidad por tipo)
+            int evento = random.nextInt(10); // Generar eventos aleatorios (% de probabilidad por tipo)
             if (evento < 3) { // 30% de probabilidad de que ocurra un evento
                 if (random.nextBoolean()) {
                     // Evento: Asteroides
